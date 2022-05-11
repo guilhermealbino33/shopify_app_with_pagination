@@ -12,15 +12,15 @@ import {
 } from "@shopify/polaris";
 import { useLazyQuery, useQuery } from '@apollo/client';
 
-import { GET_PRODUCTS } from "../graphql/requestString";
+import { GET_PRODUCTS, GET_NEXT_PRODUCTS } from "../graphql/requestString";
 import { ProductsCard } from "./ProductsCard";
 import { useEffect, useState } from "react";
 
 export function HomePage() {
   const [queryData, setData] = useState([{ id: '123', title: 'Test data1' }, { id: '223', title: 'Test data2' }]);
-  // const { loading, error, data } = useQuery(GET_PRODUCTS);
-  const [getSomeData, { called, loading, error, data }] = useLazyQuery(GET_PRODUCTS);
-  
+  let queryType = GET_PRODUCTS;
+  const [getSomeData, { called, loading, error, data, refetch }] = useLazyQuery(queryType);
+
 
   useEffect(() => {
     if (!loading) {
@@ -79,8 +79,9 @@ export function HomePage() {
             < Pagination
               hasPrevious
               onPrevious={() => {
-                getSomeData()
-                setData([{ id: 'das', title: 'dassdsada' }])
+                let cursorString = data.products.edges[data.products.edges.length - 1].cursor;
+                queryType = GET_NEXT_PRODUCTS;
+                refetch({id: cursorString}).then((res)=>{console.log(res);})
               }}
               hasNext
               onNext={() => {

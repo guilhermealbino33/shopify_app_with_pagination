@@ -13,3 +13,17 @@ export const GET_PRODUCTS = gql`
         }
     }
 `;
+
+export const GET_NEXT_PRODUCTS = gql`
+    query getNextFiveProducts($id: ID!) {
+        products(first: 6, after: $id) {
+            edges {
+                cursor
+                node {
+                    title
+                    id
+                }
+            }
+        }
+    }
+`;
