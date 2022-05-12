@@ -15,7 +15,6 @@ import {
 import { useLazyQuery } from '@apollo/client';
 
 import { GET_PRODUCTS } from "../graphql/requestString";
-import { ProductsCard } from "./ProductsCard";
 import { useCallback, useEffect } from "react";
 
 export function HomePage() {
@@ -63,50 +62,35 @@ export function HomePage() {
   }
 
   return (
-    <Page fullWidth>
-      <Layout>
-        <Layout.Section>
-          <Card sectioned>
-            {/* Our section for products */}
-            < ResourceList
-              resourceName={{ singular: 'customer', plural: 'customers' }}
-              items={data.products.edges.map((el) => { return el.node })}
-              renderItem={(item) => {
-                const { id, vendor, title, cursor } = item;
-                const media = <Avatar customer size="medium" name={title} />;
+    <Card sectioned>
+      < ResourceList
+        resourceName={{ singular: 'customer', plural: 'customers' }}
+        items={data.products.edges.map((el) => { return el.node })}
+        renderItem={(item) => {
+          const { id, vendor, title, cursor } = item;
+          const media = <Avatar customer size="medium" name={title} />;
 
-                return (
-                  <ResourceItem
-                    id={id}
-                    media={media}
-                    accessibilityLabel={`View details for ${title}`}
-                  >
-                    <h3>
-                      <TextStyle variation="strong">{title}</TextStyle>
-                    </h3>
-                    <div>{id}</div>
-                  </ResourceItem>
-                );
-              }}
-            />
-            {/* Our pagination */}
-            < Pagination
-              hasPrevious={data.products.pageInfo.hasPreviousPage ? true : false}
-              onPrevious={() => getPrevPageProducts(data)}
-              hasNext={data.products.pageInfo.hasNextPage ? true : false}
-              onNext={() => getNextPageProducts(data)}
-            />
-          </Card>
-        </Layout.Section>
-        <Layout.Section secondary>
-          <ProductsCard />
-        </Layout.Section>
-      </Layout>
-    </Page>
+          return (
+            <ResourceItem
+              id={id}
+              media={media}
+              accessibilityLabel={`View details for ${title}`}
+            >
+              <h3>
+                <TextStyle variation="strong">{title}</TextStyle>
+              </h3>
+              <div>{id}</div>
+            </ResourceItem>
+          );
+        }}
+      />
+
+      < Pagination
+        hasPrevious={data.products.pageInfo.hasPreviousPage ? true : false}
+        onPrevious={() => getPrevPageProducts(data)}
+        hasNext={data.products.pageInfo.hasNextPage ? true : false}
+        onNext={() => getNextPageProducts(data)}
+      />
+    </Card>
   );
 }
-
-
-// data.products.edges.map((el) => { return el.node })
-// 
-// 
