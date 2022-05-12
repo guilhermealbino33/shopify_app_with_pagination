@@ -1,22 +1,12 @@
 import { gql } from '@apollo/client';
 
 export const GET_PRODUCTS = gql`
-    query getProduct($amount: Int!) {
-        products(first: $amount) {
-            edges {
-                cursor
-                node {
-                    title
-                    id
-                }
+    query getProduct($first: Int, $last: Int, $after: String, $before: String) {
+        products(first: $first, last: $last, after: $after, before: $before) {
+            pageInfo {
+                hasPreviousPage
+                hasNextPage
             }
-        }
-    }
-`;
-
-export const GET_NEXT_PRODUCTS = gql`
-    query getNextFiveProducts($id: ID!) {
-        products(first: 6, after: $id) {
             edges {
                 cursor
                 node {
