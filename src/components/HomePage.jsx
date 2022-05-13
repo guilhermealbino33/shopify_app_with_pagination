@@ -9,20 +9,21 @@ import {
   Frame,
   Banner,
   TextField,
-  Filters,
-  Button
+  Button,
+  Layout
 } from "@shopify/polaris";
 import { useLazyQuery } from '@apollo/client';
 
 import { GET_PRODUCTS } from "../graphql/requestString";
 import { useCallback, useEffect, useState } from "react";
+import ErrorBannerComponent from "./ErrorBannerComponent";
+import LoadingComponent from "./LoadingComponent";
 
 export function HomePage() {
   const [getSomeData, { loading, data, error }] = useLazyQuery(GET_PRODUCTS);
   // Our filters value
   const [sortValue, setSortValue] = useState(false);
-  const [taggedWith, setTaggedWith] = useState(null);
-  const [queryValue, setQueryValue] = useState(null);
+  const [value, setValue] = useState('');
 
   useEffect(() => {
     getSomeData({ variables: { first: 5, reverse: sortValue } });
@@ -36,98 +37,37 @@ export function HomePage() {
     const cursor = data.products.edges[data.products.edges.length - 1].cursor;
     getSomeData({ variables: { first: 5, after: cursor, reverse: sortValue } });
   }, [data]);
-  const handleTaggedWithChange = useCallback(
-    (value) => setTaggedWith(value),
-    [],
-  );
-  const handleTaggedWithRemove = useCallback(() => setTaggedWith(null), []);
-  const handleQueryValueRemove = useCallback(() => setQueryValue(null), []);
-  const handleClearAll = useCallback(() => {
-    handleTaggedWithRemove();
-    handleQueryValueRemove();
-  }, [handleQueryValueRemove, handleTaggedWithRemove]);
-  const findProductsByTagOrTitle = useCallback(() => {
-    getSomeData({ variables: { first: 5, reverse: sortValue, query: `(title:${queryValue}) OR (tag:${taggedWith})` } }).catch((err) => { console.log(err); })
-  }, []);
-  const backToAllProducts = useCallback(() => {
-    getSomeData({ variables: { first: 5, reverse: sortValue } })
+  const handleChange = useCallback((newValue) => setValue(newValue), []);
+  const handleClearButtonClick = useCallback(() => setValue(''), []);
+  const findByTagOrTitle = useCallback(() => {
+    getSomeData({ variables: { first: 5, reverse: sortValue, query: `(title:${value}) OR (tag:${value})` } })
   }, [])
-  const filters = [
-    {
-      key: 'taggedWith1',
-      label: 'Tagged with',
-      filter: (
-        <TextField
-          label="Tagged with"
-          value={taggedWith}
-          onChange={handleTaggedWithChange}
-          autoComplete="off"
-          labelHidden
-        />
-      ),
-      shortcut: true,
-    },
-  ];
-
-  const appliedFilters = !isEmpty(taggedWith)
-    ? [
-      {
-        key: 'taggedWith1',
-        label: disambiguateLabel('taggedWith1', taggedWith),
-        onRemove: handleTaggedWithRemove,
-      },
-    ]
-    : [];
-
-  const filterControl = (
-    <Filters
-      queryValue={queryValue}
-      filters={filters}
-      appliedFilters={appliedFilters}
-      onQueryChange={setQueryValue}
-      onQueryClear={handleQueryValueRemove}
-      onClearAll={handleClearAll}
-    >
-      <div style={{ marginLeft: '8px' }}>
-        <Button onClick={() => {
-          findProductsByTagOrTitle()
-        }}>Find</Button>
-        <Button onClick={() => {
-          backToAllProducts();
-        }}>Back to all</Button>
-      </div>
-    </Filters>
-  );
 
   if (error) {
-    console.log(error)
-    return (
-      <Banner
-        title="Something go wrong"
-        action={{ content: 'Review risk analysis' }}
-        status="critical"
-      >
-        <p>
-          {error}
-        </p>
-      </Banner>
-    )
+    return <ErrorBannerComponent error={error}/>
   }
 
   if (loading || !data) {
-    return (
-      <div style={{ height: '100px' }}>
-        <Frame>
-          <Loading />
-        </Frame>
-      </div>
-    )
+    return <LoadingComponent />
   }
 
   return (
     <Card sectioned>
+      <Layout>
+        <TextField
+          clearButton
+          onClearButtonClick={handleClearButtonClick}
+          align="left"
+          value={value}
+          onChange={handleChange}
+          placeholder="Enter title or tag of product"
+          autoComplete="off"
+        />
+        <div style={{ marginLeft: '8px' }}>
+          <Button onClick={() => findByTagOrTitle()}>Save</Button>
+        </div>
+      </Layout>
       < ResourceList
-        filterControl={filterControl}
         sortValue={sortValue}
         sortOptions={[
           { label: 'Newest', value: true },
@@ -166,21 +106,4 @@ export function HomePage() {
       />
     </Card>
   );
-
-  function disambiguateLabel(key, value) {
-    switch (key) {
-      case 'taggedWith1':
-        return `${value}`;
-      default:
-        return value;
-    }
-  }
-
-  function isEmpty(value) {
-    if (Array.isArray(value)) {
-      return value.length === 0;
-    } else {
-      return value === '' || value == null;
-    }
-  }
 }
