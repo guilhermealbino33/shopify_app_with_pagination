@@ -6,14 +6,17 @@ export const GET_PRODUCTS = gql`
                      $after: String, 
                      $before: String, 
                      $reverse: Boolean, 
-                     $query: String) {
+                     $query: String,
+                     $sortKey: ProductSortKeys
+                     ) {
         products(
                  first: $first, 
                  last: $last, 
                  after: $after, 
                  before: $before, 
                  reverse: $reverse, 
-                 query: $query
+                 query: $query,
+                 sortKey: $sortKey
                  ) {
             pageInfo {
                 hasPreviousPage

@@ -6,7 +6,7 @@ import {
 } from "@apollo/client";
 import {
   Provider as AppBridgeProvider,
-  useAppBridge,
+  useAppBridge
 } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import { Redirect } from "@shopify/app-bridge/actions";
@@ -16,31 +16,28 @@ import "@shopify/polaris/build/esm/styles.css";
 
 import { HomePage } from "./components/HomePage";
 import { ProductsCard } from "./components/ProductsCard";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import HomepageWrapper from "./components/HomepageWrapper";
 
 export default function App() {
   return (
-    <PolarisProvider i18n={translations}>
-      <AppBridgeProvider
-        config={{
-          apiKey: process.env.SHOPIFY_API_KEY,
-          host: new URL(location).searchParams.get("host"),
-          forceRedirect: true,
-        }}
-      >
-        <MyProvider>
-          <Page fullWidth>
-            <Layout>
-              <Layout.Section>
-                <HomePage />
-              </Layout.Section>
-              <Layout.Section secondary>
-                <ProductsCard />
-              </Layout.Section>
-            </Layout>
-          </Page>
-        </MyProvider>
-      </AppBridgeProvider>
-    </PolarisProvider>
+    <BrowserRouter>
+      <PolarisProvider i18n={translations}>
+        <AppBridgeProvider
+          config={{
+            apiKey: process.env.SHOPIFY_API_KEY,
+            host: new URL(location).searchParams.get("host"),
+            forceRedirect: true,
+          }}
+        >
+          <MyProvider>
+            <Routes>
+              <Route path="/*" element={<HomepageWrapper />}/>
+            </Routes>
+          </MyProvider>
+        </AppBridgeProvider>
+      </PolarisProvider>
+    </BrowserRouter>
   );
 }
 
