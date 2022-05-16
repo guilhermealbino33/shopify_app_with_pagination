@@ -17,7 +17,6 @@ import "@shopify/polaris/build/esm/styles.css";
 import { HomePage } from "./components/HomePage";
 import { ProductsCard } from "./components/ProductsCard";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import HomepageWrapper from "./components/HomepageWrapper";
 
 export default function App() {
   return (
@@ -32,7 +31,8 @@ export default function App() {
         >
           <MyProvider>
             <Routes>
-              <Route path="/*" element={<HomepageWrapper />}/>
+              <Route path="/product/create/generate" element={<ProductsCard />}/>
+              <Route path="/*" element={<HomePage />}/>
             </Routes>
           </MyProvider>
         </AppBridgeProvider>

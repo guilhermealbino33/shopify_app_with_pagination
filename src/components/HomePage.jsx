@@ -7,111 +7,92 @@ import {
   TextStyle,
   Filters,
   ChoiceList,
-  TextField
+  TextField,
+  ButtonGroup,
+  Button,
+  Page
 } from "@shopify/polaris";
 import { useLazyQuery } from "@apollo/client";
 
 import { GET_PRODUCTS } from "../graphql/requestString";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Loading, useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
 import ErrorBannerComponent from "./ErrorBannerComponent";
-import { before } from "lodash";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 // Variable for debouncing function with react hooks 
 let timeout;
 
 export function HomePage() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams({ reverse: false });
   const [getSomeData, { loading, data, error, previousData }] = useLazyQuery(GET_PRODUCTS, {
     fetchPolicy: "no-cache"
   });
+
   // Use location
   const location = useLocation();
   const navigate = useNavigate();
+  useRoutePropagation(location);
+  useClientRouting({
+    replace(path) {
+      navigate(path);
+    }
+  });
+
+  const currentParams = useMemo(() => Object.fromEntries([...searchParams]), [searchParams]);
 
   // Our filters value
-  const [sortValue, setSortValue] = useState(false);
   const [taggedWith, setTaggedWith] = useState(null);
   const [queryValue, setQueryValue] = useState(null);
-  const [sortType, setSortType] = useState(null);
 
   useEffect(() => {
-    getSomeData({ variables: { first: 5, reverse: sortValue } });
-  }, []);
-  
-  // Handle for products pagination
+    console.log(currentParams);
+    queryRequest(5, null, null, null, getParam("reverse") === "true", getParam("sortKey"), getParam("title"), getParam("tag"));
+  }, [searchParams]);
+
+  // Handle for products PAGINATION
   const getPrevPageProducts = useCallback((data) => {
     const cursor = data.products.edges[0].cursor;
-    getSomeData({ variables: { last: 5, before: cursor, reverse: sortValue } });
+    getSomeData({ variables: { last: 5, before: cursor, reverse: getParam("reverse") === "true", sortKey: getParam("sortKey") } });
   }, [data]);
   const getNextPageProducts = useCallback((data) => {
     const cursor = data.products.edges[data.products.edges.length - 1].cursor;
-    getSomeData({ variables: { first: 5, after: cursor, reverse: sortValue } });
+    getSomeData({ variables: { first: 5, after: cursor, reverse: getParam("reverse") === "true", sortKey: getParam("sortKey") } });
   }, [data]);
 
-
-  function queryRequest(first, last, after, before, reverse, sortKey, title, tag) {
-    switch (true) {
-      case (title && tag):
-        console.log("Title and tag are exist");
-        getSomeData({ variables: { first: first, last: last, after: after, before: before, reverse: reverse, sortKey: sortKey, query: `(title:${title}*) AND (tag:${tag})` } })
-        break;
-
-      case (title && !tag):
-        console.log("Title exist");
-        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: `title:${title}*` } })
-        break;
-
-      case (tag && !title):
-        console.log("Tag exist");
-        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: `tag:${tag}*` } })
-        break;
-
-      default:
-        console.log("Title and tag are empty");
-        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: null } })
-        break;
-    }
-  }
-
-  // Handle for change filters value
   // Sort by Newest OR Oldest
   const handleSortValueChange = useCallback((value) => {
-    const sortValueBoolean = (value === "true");
-    setSortValue(sortValueBoolean);
-    queryRequest(5, null, null, null, sortValueBoolean, sortType, queryValue, taggedWith);
-  }, [queryValue, sortValue, sortType, taggedWith]);
+    setSearchParams({ ...currentParams, reverse: value })
+  }, []);
 
   // Sort by Alphabet or Price
   const handleSortTypeChange = useCallback((value) => {
     const sortTypeString = value[0];
-    setSortType(sortTypeString);
-    queryRequest(5, null, null, null, sortValue, sortTypeString, queryValue, taggedWith);
-  }, [queryValue, sortValue, sortType, taggedWith]);
+    setSearchParams({ ...currentParams, sortKey: sortTypeString })
+  }, []);
 
   // Filter by tags
   const handleTaggedWithChange = useCallback((value) => {
     setTaggedWith(value);
     clearTimeout(timeout);
-    timeout = setTimeout(()=>{
-      queryRequest(5, null, null, null, sortValue, sortType, queryValue, value);
+    timeout = setTimeout(() => {
+      setSearchParams({ ...currentParams, tag: value });
     }, 1000)
-  }, [queryValue, sortValue, sortType, taggedWith]);
+  }, []);
 
   // Filter by title
   const handleFiltersQueryChange = useCallback((value) => {
     setQueryValue(value);
     clearTimeout(timeout);
-    timeout = setTimeout(()=>{
-      queryRequest(5, null, null, null, sortValue, sortType, value, taggedWith);
+    timeout = setTimeout(() => {
+      setSearchParams({ ...currentParams, title: value });
     }, 1000)
-  }, [queryValue, sortValue, sortType, taggedWith]);
+  }, []);
 
   // Handlers for remove filters
-  const handleSortTypeRemove = useCallback(() => setSortType(null), []);
-  const handleTaggedWithRemove = useCallback(() => setTaggedWith(null), []);
-  const handleQueryValueRemove = useCallback(() => setQueryValue(null), []);
+  const handleSortTypeRemove = useCallback(() => setSearchParams({ ...currentParams, sortKey: '' }), []);
+  const handleTaggedWithRemove = useCallback(() => setSearchParams({ ...currentParams, tag: '' }), []);
+  const handleQueryValueRemove = useCallback(() => setSearchParams({ ...currentParams, title: '' }), []);
 
   const handleFiltersClearAll = useCallback(() => {
     handleSortTypeRemove();
@@ -123,6 +104,10 @@ export function HomePage() {
     handleTaggedWithRemove,
   ]);
 
+  // Clear url
+  const clearUrl = useCallback(() => {
+    // setSearchParams('');
+  }, [])
   // FILTER part START---------------------------------------------------------------------------------------------------------
   const filters = [
     {
@@ -150,7 +135,7 @@ export function HomePage() {
             { label: "Alphabet", value: "TITLE" },
             { label: "Price", value: "PRICE" }
           ]}
-          selected={sortType || []}
+          selected={getParam("sortKey") || []}
           onChange={handleSortTypeChange}
         />
       ),
@@ -159,19 +144,19 @@ export function HomePage() {
   ]
 
   const appliedFilters = [];
-  if (!isEmpty(sortType)) {
+  if (!isEmpty(getParam("sortKey"))) {
     const key = "sortType";
     appliedFilters.push({
       key,
-      label: disambiguateLabel(key, sortType),
+      label: disambiguateLabel(key, getParam("sortKey")),
       onRemove: handleSortTypeRemove,
     });
   }
-  if (!isEmpty(taggedWith)) {
+  if (!isEmpty(getParam("tag"))) {
     const key = "taggedWith";
     appliedFilters.push({
       key,
-      label: disambiguateLabel(key, taggedWith),
+      label: disambiguateLabel(key, getParam("tag")),
       onRemove: handleTaggedWithRemove,
     });
   }
@@ -184,55 +169,64 @@ export function HomePage() {
   if (!previousData && !data) return <Loading />;
 
   return (
-    <Card sectioned>
-      < ResourceList
-        loading={loading}
-        filterControl={
-          <Filters
-            queryPlaceholder="Start enter product title"
-            queryValue={queryValue}
-            filters={filters}
-            appliedFilters={appliedFilters}
-            onClearAll={handleFiltersClearAll}
-            onQueryChange={handleFiltersQueryChange}
-            onQueryClear={handleQueryValueRemove}
-          />
-        }
-        sortValue={sortValue}
-        sortOptions={[
-          { label: "Newest", value: true },
-          { label: "Oldest", value: false },
-        ]}
-        onSortChange={handleSortValueChange}
-        resourceName={{ singular: "customer", plural: "customers" }}
-        items={loading || !data
-          ? previousData ? previousData.products.edges.map((el) => { return el.node }) : []
-          : data.products.edges.map((el) => { return el.node })}
-        renderItem={(item) => {
-          const { id, title } = item;
-          const media = <Avatar customer size="medium" name={title} />;
-          return (
-            <ResourceItem
-              id={id}
-              media={media}
-              accessibilityLabel={`View details for ${title}`}
-            >
-              <h3>
-                <TextStyle variation="strong">{title}</TextStyle>
-              </h3>
-              <div>{id}</div>
-            </ResourceItem>
-          );
-        }}
-      />
+    <Page>
+      <Card >
+        < ResourceList
+          loading={loading}
+          filterControl={
+            <Filters
+              queryPlaceholder="Start enter product title"
+              queryValue={queryValue}
+              filters={filters}
+              appliedFilters={appliedFilters}
+              onClearAll={handleFiltersClearAll}
+              onQueryChange={handleFiltersQueryChange}
+              onQueryClear={handleQueryValueRemove}
+            />
+          }
+          sortValue={getParam("reverse") ? (getParam("reverse") === "true") : false}
+          sortOptions={[
+            { label: "Newest", value: true },
+            { label: "Oldest", value: false },
+          ]}
+          onSortChange={handleSortValueChange}
+          resourceName={{ singular: "customer", plural: "customers" }}
+          items={loading || !data
+            ? previousData ? previousData.products.edges.map((el) => { return el.node }) : []
+            : data.products.edges.map((el) => { return el.node })}
+          renderItem={(item) => {
+            const { id, title } = item;
+            const media = <Avatar customer size="medium" name={title} />;
+            return (
+              <ResourceItem
+                id={id}
+                media={media}
+                accessibilityLabel={`View details for ${title}`}
+              >
+                <h3>
+                  <TextStyle variation="strong">{title}</TextStyle>
+                </h3>
+                <div>{id}</div>
+              </ResourceItem>
+            );
+          }}
+        />
 
-      < Pagination
-        hasPrevious={data && !loading ? data.products.pageInfo.hasPreviousPage : false}
-        onPrevious={() => getPrevPageProducts(data)}
-        hasNext={data && !loading ? data.products.pageInfo.hasNextPage : false}
-        onNext={() => getNextPageProducts(data)}
-      />
-    </Card>
+        <Card sectioned>
+          < Pagination
+            hasPrevious={data && !loading ? data.products.pageInfo.hasPreviousPage : false}
+            onPrevious={() => getPrevPageProducts(data)}
+            hasNext={data && !loading ? data.products.pageInfo.hasNextPage : false}
+            onNext={() => getNextPageProducts(data)}
+          />
+        </Card>
+        <Card sectioned>
+          <ButtonGroup>
+            <Button onClick={clearUrl}>Clear url</Button>
+          </ButtonGroup>
+        </Card>
+      </Card>
+    </Page>
   );
 
   function disambiguateLabel(key, value) {
@@ -251,6 +245,46 @@ export function HomePage() {
       return value.length === 0;
     } else {
       return value === "" || value == null;
+    }
+  }
+
+  // Handle for change filters value
+  function queryRequest(first = 5, last, after, before, reverse, sortKey, title, tag) {
+    switch (true) {
+      case (title && tag):
+        console.log("Title and tag are exist");
+        getSomeData({ variables: { first: first, last: last, after: after, before: before, reverse: reverse, sortKey: sortKey, query: `(title:${title}*) AND (tag:${tag})` } })
+        break;
+
+      case (title && !tag):
+        console.log("Title only");
+        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: `title:${title}*` } })
+        break;
+
+      case (tag && !title):
+        console.log("Tag only");
+        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: `tag:${tag}*` } })
+        break;
+
+      default:
+        console.log("Title and tag are empty");
+        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: null } })
+        break;
+    }
+  }
+
+  function getParam(param) {
+    const urlQueryObject = Object.fromEntries([...searchParams]);
+    if (urlQueryObject.hasOwnProperty(param)) {
+      if (param === "reverse" && urlQueryObject[param] === "") {
+        return false;
+      }
+      if (urlQueryObject[param] === "") {
+        return null;
+      }
+      return urlQueryObject[param];
+    } else {
+      return null
     }
   }
 }
