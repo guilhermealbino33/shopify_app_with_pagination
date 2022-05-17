@@ -9,16 +9,19 @@ import {
   useAppBridge
 } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
-import { Redirect } from "@shopify/app-bridge/actions";
+import { Redirect, NavigationMenu, AppLink } from "@shopify/app-bridge/actions";
 import { AppProvider as PolarisProvider, Layout, Page } from "@shopify/polaris";
 import translations from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
+import { useEffect } from 'react';
 
 import { HomePage } from "./components/HomePage";
 import { ProductsCard } from "./components/ProductsCard";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Dashboard } from "./components/Dashboard";
 
 export default function App() {
+
   return (
     <BrowserRouter>
       <PolarisProvider i18n={translations}>
@@ -31,8 +34,8 @@ export default function App() {
         >
           <MyProvider>
             <Routes>
-              <Route path="/product/create/generate" element={<ProductsCard />}/>
-              <Route path="/*" element={<HomePage />}/>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/create" element={<ProductsCard />} />
             </Routes>
           </MyProvider>
         </AppBridgeProvider>
@@ -43,6 +46,28 @@ export default function App() {
 
 function MyProvider({ children }) {
   const app = useAppBridge();
+
+  // NAVIGATION SECTION 
+  const itemsLink = AppLink.create(app, {
+    label: 'Items',
+    destination: '/',
+  });
+  const createProductLink = AppLink.create(app, {
+    label: 'Create',
+    destination: '/create'
+  });
+  const statisticLink = AppLink.create(app, {
+    label: 'Statistic',
+    destination: '/statistic',
+  });
+  const navigationMenu = NavigationMenu.create(app, {
+    items: [statisticLink, itemsLink, createProductLink]
+  });
+  navigationMenu.set({active: statisticLink});
+  app.subscribe(Redirect.Action.APP, function (redirectData) {
+    navigationMenu.set({ active: (navigationMenu.children.find((point) => { return point.destination === redirectData.path })) })
+  });
+  // NAVIGATION SECTION END
 
   const client = new ApolloClient({
     cache: new InMemoryCache(),
