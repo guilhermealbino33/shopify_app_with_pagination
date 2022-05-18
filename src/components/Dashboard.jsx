@@ -9,11 +9,20 @@ import {
     TextStyle
 } from '@shopify/polaris';
 import { userLoggedInFetch } from "../App";
-import { useAppBridge } from "@shopify/app-bridge-react";
-
+import { useAppBridge, useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export const Dashboard = () => {
     const [productCount, setProductCount] = useState(0);
+    // Use location
+  const location = useLocation();
+  const navigate = useNavigate();
+  useRoutePropagation(location);
+  useClientRouting({
+    replace(path) {
+      navigate(path);
+    }
+  });
 
     const app = useAppBridge();
     const fetch = userLoggedInFetch(app);

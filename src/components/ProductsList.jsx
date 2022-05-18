@@ -23,7 +23,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 // Variable for debouncing function with react hooks 
 let timeout;
 
-export function HomePage() {
+export function ProductsList() {
   const [searchParams, setSearchParams] = useSearchParams({ reverse: false });
   const [getSomeData, { loading, data, error, previousData }] = useLazyQuery(GET_PRODUCTS, {
     fetchPolicy: "no-cache"
@@ -202,6 +202,9 @@ export function HomePage() {
                 id={id}
                 media={media}
                 accessibilityLabel={`View details for ${title}`}
+                onClick={()=>{
+                  console.log(id);
+                }}
               >
                 <h3>
                   <TextStyle variation="strong">{title}</TextStyle>

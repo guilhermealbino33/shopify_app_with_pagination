@@ -32,3 +32,13 @@ export const GET_PRODUCTS = gql`
         }
     }
 `;
+
+export const PRODUCTS_QUERY = gql`
+  mutation populateProduct($input: ProductInput!) {
+    productCreate(input: $input) {
+      product {
+        title
+      }
+    }
+  }
+`;

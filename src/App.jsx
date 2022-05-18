@@ -10,15 +10,14 @@ import {
 } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import { Redirect, NavigationMenu, AppLink } from "@shopify/app-bridge/actions";
-import { AppProvider as PolarisProvider, Layout, Page } from "@shopify/polaris";
+import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import translations from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
-import { useEffect } from 'react';
-
-import { HomePage } from "./components/HomePage";
-import { ProductsCard } from "./components/ProductsCard";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import { ProductsList } from "./components/ProductsList";
 import { Dashboard } from "./components/Dashboard";
+import { CreateProduct } from "./components/CreateProduct";
 
 export default function App() {
 
@@ -35,7 +34,8 @@ export default function App() {
           <MyProvider>
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/create" element={<ProductsCard />} />
+              <Route path="/products" element={<ProductsList />} />
+              <Route path="/create" element={<CreateProduct />} />
             </Routes>
           </MyProvider>
         </AppBridgeProvider>
@@ -48,22 +48,21 @@ function MyProvider({ children }) {
   const app = useAppBridge();
 
   // NAVIGATION SECTION 
-  const itemsLink = AppLink.create(app, {
-    label: 'Items',
+  const dashboardLink = AppLink.create(app, {
+    label: 'Dashboard',
     destination: '/',
+  });
+  const itemsLink = AppLink.create(app, {
+    label: 'Products',
+    destination: '/products',
   });
   const createProductLink = AppLink.create(app, {
     label: 'Create',
     destination: '/create'
   });
-  const statisticLink = AppLink.create(app, {
-    label: 'Statistic',
-    destination: '/statistic',
-  });
   const navigationMenu = NavigationMenu.create(app, {
-    items: [statisticLink, itemsLink, createProductLink]
+    items: [dashboardLink, itemsLink, createProductLink]
   });
-  navigationMenu.set({active: statisticLink});
   app.subscribe(Redirect.Action.APP, function (redirectData) {
     navigationMenu.set({ active: (navigationMenu.children.find((point) => { return point.destination === redirectData.path })) })
   });

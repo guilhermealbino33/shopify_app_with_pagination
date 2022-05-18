@@ -7,8 +7,9 @@ import {
   TextStyle,
   Button,
 } from "@shopify/polaris";
-import { Toast, useAppBridge } from "@shopify/app-bridge-react";
+import { Toast, useAppBridge, useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
 import { gql, useMutation } from "@apollo/client";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { userLoggedInFetch } from "../App";
 
@@ -26,7 +27,15 @@ export function ProductsCard() {
   const [populateProduct, { loading }] = useMutation(PRODUCTS_QUERY);
   const [productCount, setProductCount] = useState(0);
   const [hasResults, setHasResults] = useState(false);
-
+  // Use location
+  const location = useLocation();
+  const navigate = useNavigate();
+  useRoutePropagation(location);
+  useClientRouting({
+    replace(path) {
+      navigate(path);
+    }
+  });
   const app = useAppBridge();
   const fetch = userLoggedInFetch(app);
   async function updateProductCount() {
