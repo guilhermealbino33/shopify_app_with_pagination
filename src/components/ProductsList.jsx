@@ -16,7 +16,7 @@ import { useLazyQuery } from "@apollo/client";
 
 import { GET_PRODUCTS } from "../graphql/requestString";
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { Loading, useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
+import { Loading, useClientRouting, useRoutePropagation, useAppBridge } from "@shopify/app-bridge-react";
 import ErrorBannerComponent from "./ErrorBannerComponent";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
@@ -47,47 +47,66 @@ export function ProductsList() {
 
   useEffect(() => {
     console.log(currentParams);
-    queryRequest(5, null, null, null, getParam("reverse") === "true", getParam("sortKey"), getParam("title"), getParam("tag"));
+    queryRequest(5, getParam("last"), getParam("after"), getParam("before"), getParam("reverse") === "true", getParam("sortKey"), getParam("title"), getParam("tag"));
   }, [searchParams]);
 
   // Handle for products PAGINATION
   const getPrevPageProducts = useCallback((data) => {
     const cursor = data.products.edges[0].cursor;
+    currentParams.first = '';
+    currentParams.last = 5;
+    currentParams.after = '';
+    currentParams.before = cursor;
+    setSearchParams({ ...currentParams, last: 5, before: cursor, after: '', first: '' })
     getSomeData({ variables: { last: 5, before: cursor, reverse: getParam("reverse") === "true", sortKey: getParam("sortKey") } });
-  }, [data]);
+  }, [data, currentParams]);
+
   const getNextPageProducts = useCallback((data) => {
     const cursor = data.products.edges[data.products.edges.length - 1].cursor;
+    currentParams.first = 5;
+    currentParams.last = '';
+    currentParams.after = cursor;
+    currentParams.before = '';
+    setSearchParams({ ...currentParams, first: 5, after: cursor, before: '', last: '' })
     getSomeData({ variables: { first: 5, after: cursor, reverse: getParam("reverse") === "true", sortKey: getParam("sortKey") } });
-  }, [data]);
+  }, [data, currentParams]);
 
   // Sort by Newest OR Oldest
   const handleSortValueChange = useCallback((value) => {
+    currentParams.reverse = value;
     setSearchParams({ ...currentParams, reverse: value })
-  }, []);
+  }, [currentParams]);
 
   // Sort by Alphabet or Price
   const handleSortTypeChange = useCallback((value) => {
     const sortTypeString = value[0];
+    currentParams.sortKey = sortTypeString;
     setSearchParams({ ...currentParams, sortKey: sortTypeString })
-  }, []);
+  }, [currentParams]);
 
   // Filter by tags
   const handleTaggedWithChange = useCallback((value) => {
     setTaggedWith(value);
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      setSearchParams({ ...currentParams, tag: value });
+      currentParams.tag = value;
+      currentParams.before = '';
+      currentParams.after = '';
+      setSearchParams({ ...currentParams, tag: value, before: '', after: '' });
     }, 1000)
-  }, []);
+  }, [currentParams]);
 
   // Filter by title
   const handleFiltersQueryChange = useCallback((value) => {
     setQueryValue(value);
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      setSearchParams({ ...currentParams, title: value });
+      currentParams.title = value;
+      currentParams.before = '';
+      currentParams.after = '';
+      setSearchParams({ ...currentParams, title: value, before: '', after: '' });
     }, 1000)
-  }, []);
+  }, [currentParams]);
 
   // Handlers for remove filters
   const handleSortTypeRemove = useCallback(() => setSearchParams({ ...currentParams, sortKey: '' }), []);
@@ -202,9 +221,7 @@ export function ProductsList() {
                 id={id}
                 media={media}
                 accessibilityLabel={`View details for ${title}`}
-                onClick={()=>{
-                  console.log(id);
-                }}
+                onClick={() => { navigate(`/products/${getIdNumbers(id)}`) }}
               >
                 <h3>
                   <TextStyle variation="strong">{title}</TextStyle>
@@ -253,6 +270,11 @@ export function ProductsList() {
 
   // Handle for change filters value
   function queryRequest(first = 5, last, after, before, reverse, sortKey, title, tag) {
+    if(!first && !last) {
+      console.log('Fetched');
+      getSomeData({ variables: { first: 5, last: null, after: null, reverse: reverse, sortKey: sortKey, query: null } })
+      return
+    }
     switch (true) {
       case (title && tag):
         console.log("Title and tag are exist");
@@ -276,9 +298,22 @@ export function ProductsList() {
     }
   }
 
+  function getIdNumbers(id) {
+    const string = id;
+    const res = string.replace(/\D/g, "");
+    return res;
+  }
+
   function getParam(param) {
     const urlQueryObject = Object.fromEntries([...searchParams]);
     if (urlQueryObject.hasOwnProperty(param)) {
+      if(param === "first" || param === "last") {
+        if(param) {
+          return parseInt(param);
+        } else {
+          return null;
+        }
+      }
       if (param === "reverse" && urlQueryObject[param] === "") {
         return false;
       }
@@ -287,7 +322,7 @@ export function ProductsList() {
       }
       return urlQueryObject[param];
     } else {
-      return null
+      return null;
     }
   }
 }

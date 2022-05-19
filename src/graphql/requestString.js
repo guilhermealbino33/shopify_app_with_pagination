@@ -42,3 +42,24 @@ export const PRODUCTS_QUERY = gql`
     }
   }
 `;
+
+export const GET_CHOOSEN_PRODUCT = gql`
+  query getChoosenProduct($id: ID!) {
+    product(id: $id) {
+      title
+      descriptionHtml
+  }
+}
+`;
+
+export const UPDATE_CHOOSEN_PRODUCT = gql`
+mutation productUpdate($input: ProductInput!) {
+    productUpdate(input: $input) {
+        product {
+            id
+            title
+            descriptionHtml
+        }
+    }
+}
+`;

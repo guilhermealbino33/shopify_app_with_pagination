@@ -6,7 +6,8 @@ import {
 } from "@apollo/client";
 import {
   Provider as AppBridgeProvider,
-  useAppBridge
+  useAppBridge,
+  TitleBar
 } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import { Redirect, NavigationMenu, AppLink } from "@shopify/app-bridge/actions";
@@ -16,10 +17,17 @@ import "@shopify/polaris/build/esm/styles.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { ProductsList } from "./components/ProductsList";
+import { ProductsItem } from "./components/ProductsItem";
 import { Dashboard } from "./components/Dashboard";
 import { CreateProduct } from "./components/CreateProduct";
+import { Navigation } from "./components/Navigation";
 
 export default function App() {
+
+  const primaryAction = { content: 'Foo', url: '/foo' };
+  const secondaryActions = [{ content: 'Bar', url: '/bar', loading: true }];
+  const actionGroups = [{ title: 'Baz', actions: [{ content: 'Baz', url: '/baz' }] }];
+
 
   return (
     <BrowserRouter>
@@ -32,9 +40,11 @@ export default function App() {
           }}
         >
           <MyProvider>
+            <Navigation />
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/products" element={<ProductsList />} />
+              <Route path="/products/:id" element={<ProductsItem />} />
               <Route path="/create" element={<CreateProduct />} />
             </Routes>
           </MyProvider>
@@ -46,27 +56,6 @@ export default function App() {
 
 function MyProvider({ children }) {
   const app = useAppBridge();
-
-  // NAVIGATION SECTION 
-  const dashboardLink = AppLink.create(app, {
-    label: 'Dashboard',
-    destination: '/',
-  });
-  const itemsLink = AppLink.create(app, {
-    label: 'Products',
-    destination: '/products',
-  });
-  const createProductLink = AppLink.create(app, {
-    label: 'Create',
-    destination: '/create'
-  });
-  const navigationMenu = NavigationMenu.create(app, {
-    items: [dashboardLink, itemsLink, createProductLink]
-  });
-  app.subscribe(Redirect.Action.APP, function (redirectData) {
-    navigationMenu.set({ active: (navigationMenu.children.find((point) => { return point.destination === redirectData.path })) })
-  });
-  // NAVIGATION SECTION END
 
   const client = new ApolloClient({
     cache: new InMemoryCache(),
