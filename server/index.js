@@ -71,6 +71,16 @@ export async function createServer(
     res.status(200).send(countData);
   });
 
+  app.get("/rest", verifyRequest(app), async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(req, res, true);
+    const { Product } = await import(
+      `@shopify/shopify-api/dist/rest-resources/${Shopify.Context.API_VERSION}/index.js`
+    );
+
+    const countData = await Product.count({ session: session, created_at_min: '2022-05-15' });
+    res.status(200).send(countData);
+  });
+
   app.post("/graphql", verifyRequest(app), async (req, res) => {
     try {
       const response = await Shopify.Utils.graphqlProxy(req, res);
