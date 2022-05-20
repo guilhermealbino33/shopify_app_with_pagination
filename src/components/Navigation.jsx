@@ -1,10 +1,8 @@
 import React from 'react';
-import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { NavigationMenu, useAppBridge, useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
+import { NavigationMenu, useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
 
 export const Navigation = () => {
-    const app = useAppBridge();
     // Use location
     const location = useLocation();
     const navigate = useNavigate();
@@ -14,9 +12,6 @@ export const Navigation = () => {
             navigate(path);
         }
     });
-    useEffect(() => {
-
-    }, [])
 
     const dashBoardLink = { label: 'Dashboard', destination: '/' };
     const productsLink = { label: 'Products', destination: '/products' };
