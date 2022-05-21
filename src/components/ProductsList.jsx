@@ -120,6 +120,7 @@ export function ProductsList() {
   }, []);
 
   const handleFiltersClearAll = useCallback(() => {
+    
     handleSortTypeRemove();
     handleTaggedWithRemove();
     handleQueryValueRemove();
