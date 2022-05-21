@@ -6,11 +6,10 @@ import {
 } from "@apollo/client";
 import {
   Provider as AppBridgeProvider,
-  useAppBridge,
-  TitleBar
+  useAppBridge
 } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
-import { Redirect, NavigationMenu, AppLink } from "@shopify/app-bridge/actions";
+import { Redirect } from "@shopify/app-bridge/actions";
 import { AppProvider as PolarisProvider } from "@shopify/polaris";
 import translations from "@shopify/polaris/locales/en.json";
 import "@shopify/polaris/build/esm/styles.css";
@@ -18,17 +17,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { ProductsList } from "./components/ProductsList";
 import { ProductsItem } from "./components/ProductsItem";
-import { Dashboard } from "./components/Dashboard";
+import Dashboard from "./components/Dashboard/index.js";
 import { CreateProduct } from "./components/CreateProduct";
 import { Navigation } from "./components/Navigation";
 
 export default function App() {
-
-  const primaryAction = { content: 'Foo', url: '/foo' };
-  const secondaryActions = [{ content: 'Bar', url: '/bar', loading: true }];
-  const actionGroups = [{ title: 'Baz', actions: [{ content: 'Baz', url: '/baz' }] }];
-
-
   return (
     <BrowserRouter>
       <PolarisProvider i18n={translations}>

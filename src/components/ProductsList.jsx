@@ -110,8 +110,14 @@ export function ProductsList() {
 
   // Handlers for remove filters
   const handleSortTypeRemove = useCallback(() => setSearchParams({ ...currentParams, sortKey: '' }), []);
-  const handleTaggedWithRemove = useCallback(() => setSearchParams({ ...currentParams, tag: '' }), []);
-  const handleQueryValueRemove = useCallback(() => setSearchParams({ ...currentParams, title: '' }), []);
+  const handleTaggedWithRemove = useCallback(() => {
+    setTaggedWith('')
+    setSearchParams({ ...currentParams, tag: '' })
+  }, []);
+  const handleQueryValueRemove = useCallback(() => {
+    setQueryValue('');
+    setSearchParams({ ...currentParams, title: '' })
+  }, []);
 
   const handleFiltersClearAll = useCallback(() => {
     handleSortTypeRemove();
