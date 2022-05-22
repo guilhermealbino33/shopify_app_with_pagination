@@ -2,25 +2,26 @@ import React, { useState } from 'react';
 import { useCallback, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useRoutePropagation, useClientRouting } from '@shopify/app-bridge-react';
-import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import { Button, ButtonGroup, Card, Frame, Layout, Loading, Page, TextField, Banner } from '@shopify/polaris';
 import { GET_CHOOSEN_PRODUCT, UPDATE_CHOOSEN_PRODUCT } from '../graphql/requestString';
 
 export const ProductsItem = () => {
     const [idNumber] = useState(useParams().id);
 
-    const [getOneProduct, { data: queryData, loading: queryLoading, error: queryError }] = useLazyQuery(GET_CHOOSEN_PRODUCT, { variables: { id: 'gid://shopify/Product/' + idNumber } });
-    const [mutateFunction, { loading: mutLoading, error: mutError, called: mutCalled }] = useMutation(UPDATE_CHOOSEN_PRODUCT);
-    const [titleValue, setTitleValue] = useState('');
-    const [descriptionValue, setDescriptionValue] = useState('');
+    const [getProduct, { data, loading, error }] = useLazyQuery(GET_CHOOSEN_PRODUCT, { variables: { id: 'gid://shopify/Product/' + idNumber } });
+    const [mutateFunction, { loading: mutationLoading, error: mutationError }] = useMutation(UPDATE_CHOOSEN_PRODUCT);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
 
     useEffect(() => {
-        getOneProduct();
-        if(queryData) {
-            setTitleValue(queryData.product.title);
-            setDescriptionValue(queryData.product.descriptionHtml);
+        getProduct();
+        if (data) {
+            setTitle(data.product.title);
+            setDescription(data.product.descriptionHtml);
         }
-    }, [queryLoading])
+    }, [data])
+
     // Use location
     const location = useLocation();
     const navigate = useNavigate();
@@ -31,8 +32,9 @@ export const ProductsItem = () => {
         }
     });
     // For handle edit field value
-    const handleChangeTitle = useCallback((newValue) => setTitleValue(newValue), []);
-    const handleChangeDescription = useCallback((newValue) => setDescriptionValue(newValue), []);
+    const handleChangeTitle = useCallback((newValue) => setTitle(newValue), []);
+    const handleChangeDescription = useCallback((newValue) => setDescription(newValue), []);
+
     // For navigate useCallback 
     const backToAllProducts = useCallback(() => { navigate('/products') }, []);
     // For update our product
@@ -41,23 +43,22 @@ export const ProductsItem = () => {
             variables: {
                 input: {
                     id: `gid://shopify/Product/${idNumber}`,
-                    title: titleValue,
-                    descriptionHtml: descriptionValue
+                    title: title,
+                    descriptionHtml: description
                 }
             }
-        }).then(()=>{
-            getOneProduct();
+        }).then(() => {
+            getProduct();
         })
-    }, [titleValue, descriptionValue, idNumber]);
+    }, [title, description, idNumber]);
 
-    if (queryError || mutError) {
-        console.log(queryError || mutError);
+    if (error || mutationError) {
         return (
             <Banner status="critical">There was an issue loading product.</Banner>
         );
     }
 
-    if (queryLoading) {
+    if (loading || !data) {
         return (
             <Frame>
                 <Loading />
@@ -67,15 +68,16 @@ export const ProductsItem = () => {
 
     return (
         <Page
-            title={queryData && !queryLoading? queryData.product.title : 'Title loading...'}
-            subtitle={queryData && !queryLoading? queryData.product.descriptionHtml : 'Description loading...'}
+            title={data.product.title}
+            subtitle={data.product.descriptionHtml}
         >
             <Card title="Change fields" sectioned>
                 <Layout>
                     <Layout.Section>
                         <TextField
+                            requiredIndicator
                             label="Title"
-                            value={titleValue}
+                            value={title}
                             onChange={handleChangeTitle}
                             autoComplete="off"
                         />
@@ -83,17 +85,17 @@ export const ProductsItem = () => {
                     <Layout.Section>
                         <TextField
                             label="Description"
-                            value={descriptionValue}
+                            value={description}
                             onChange={handleChangeDescription}
                             autoComplete="off"
                         />
                     </Layout.Section>
                     <Layout.Section>
                         <ButtonGroup>
-                            <Button 
-                            loading={queryLoading} 
-                            disabled={false} 
-                            onClick={updateProduct} primary>Save</Button>
+                            <Button
+                                loading={mutationLoading}
+                                disabled={title ? (title === data.product.title && description === data.product.descriptionHtml) || loading : true}
+                                onClick={updateProduct} primary>Save</Button>
                             <Button onClick={backToAllProducts} primary>Back to all products</Button>
                         </ButtonGroup>
                     </Layout.Section>
