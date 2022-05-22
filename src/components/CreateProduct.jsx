@@ -62,6 +62,7 @@ export const CreateProduct = () => {
             <Layout>
                 <Layout.Section>
                     <TextField
+                        requiredIndicator
                         label="Product name"
                         value={titleValue}
                         onChange={handleChangeTitle}

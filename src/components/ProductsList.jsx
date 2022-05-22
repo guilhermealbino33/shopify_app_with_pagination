@@ -120,7 +120,7 @@ export function ProductsList() {
   }, []);
 
   const handleFiltersClearAll = useCallback(() => {
-    
+
     handleSortTypeRemove();
     handleTaggedWithRemove();
     handleQueryValueRemove();
@@ -248,9 +248,7 @@ export function ProductsList() {
           />
         </Card>
         <Card sectioned>
-          <ButtonGroup>
-            <Button onClick={clearUrl}>Clear url</Button>
-          </ButtonGroup>
+          <Button fullWidth primary onClick={()=>{navigate('/create')}}>Add new product</Button>
         </Card>
       </Card>
     </Page>
@@ -277,7 +275,7 @@ export function ProductsList() {
 
   // Handle for change filters value
   function queryRequest(first = 5, last, after, before, reverse, sortKey, title, tag) {
-    if(!first && !last) {
+    if (!first && !last) {
       console.log('Fetched');
       getSomeData({ variables: { first: 5, last: null, after: null, reverse: reverse, sortKey: sortKey, query: null } })
       return
@@ -314,8 +312,8 @@ export function ProductsList() {
   function getParam(param) {
     const urlQueryObject = Object.fromEntries([...searchParams]);
     if (urlQueryObject.hasOwnProperty(param)) {
-      if(param === "first" || param === "last") {
-        if(param) {
+      if (param === "first" || param === "last") {
+        if (param) {
           return parseInt(param);
         } else {
           return null;

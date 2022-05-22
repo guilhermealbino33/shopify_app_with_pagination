@@ -17,7 +17,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { ProductsList } from "./components/ProductsList";
 import { ProductsItem } from "./components/ProductsItem";
-import Dashboard from "./components/Dashboard/index.js";
+import { Dashboard } from "./components/Dashboard/Dashboard.jsx";
 import { CreateProduct } from "./components/CreateProduct";
 import { Navigation } from "./components/Navigation";
 
