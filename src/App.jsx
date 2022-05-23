@@ -6,7 +6,8 @@ import {
 } from "@apollo/client";
 import {
   Provider as AppBridgeProvider,
-  useAppBridge
+  useAppBridge,
+  TitleBar
 } from "@shopify/app-bridge-react";
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import { Redirect } from "@shopify/app-bridge/actions";
@@ -33,6 +34,10 @@ export default function App() {
           }}
         >
           <MyProvider>
+            <TitleBar
+              title="Generator"
+              primaryAction={null}
+            />
             <Navigation />
             <Routes>
               <Route path="/" element={<Dashboard />} />

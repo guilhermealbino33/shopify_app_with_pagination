@@ -10,12 +10,15 @@ import {
 } from '@shopify/polaris';
 import { useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useDispatch } from 'react-redux';
-import { getAllProductsCount } from '../../store/dashboardSlice/index';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllProductsCount, getPublishedProductsCount, getProductsCreatedAfter16MayCount } from '../../store/dashboardSlice/index';
 
 
 export const Dashboard = () => {
     const dispatch = useDispatch();
+    const allProudctsCount = useSelector(state => state.dashboard. allProducts);
+    const publishedProudctsCount = useSelector(state => state.dashboard. publishedProducts);
+    const createdAfter16MayProudctsCount = useSelector(state => state.dashboard. createdAfter16MayProducts);
     
     // Use location
     const location = useLocation();
@@ -29,9 +32,8 @@ export const Dashboard = () => {
 
     useEffect(() => {
         dispatch(getAllProductsCount());
-        // getAllCountProduct(),
-        // getPublishedCountProduct(),
-        // getCreadtedAfter16MayCountProduct()
+        dispatch(getPublishedProductsCount());
+        dispatch(getProductsCreatedAfter16MayCount());
     }, []);
 
     return (
@@ -41,7 +43,7 @@ export const Dashboard = () => {
                     <Heading element="h4">
                         NUMBER OF EXISTING PRODUCTS
                         <DisplayText size="medium">
-                            <TextStyle variation="strong">0</TextStyle>
+                            <TextStyle variation="strong">{allProudctsCount}</TextStyle>
                         </DisplayText>
                     </Heading>
                 </TextContainer>
@@ -51,7 +53,7 @@ export const Dashboard = () => {
                     <Heading element="h4">
                         NUMBER OF PUBLISHED PRODUCTS
                         <DisplayText size="medium">
-                            <TextStyle variation="strong">0</TextStyle>
+                            <TextStyle variation="strong">{publishedProudctsCount}</TextStyle>
                         </DisplayText>
                     </Heading>
                 </TextContainer>
@@ -61,7 +63,7 @@ export const Dashboard = () => {
                     <Heading element="h4">
                         NUMBER OF PRODUCTS WHICH CREATED AFTER 16 MAY
                         <DisplayText size="medium">
-                            <TextStyle variation="strong">0</TextStyle>
+                            <TextStyle variation="strong">{createdAfter16MayProudctsCount}</TextStyle>
                         </DisplayText>
                     </Heading>
                 </TextContainer>

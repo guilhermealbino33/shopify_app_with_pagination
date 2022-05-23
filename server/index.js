@@ -76,7 +76,6 @@ export async function createServer(
 
   app.post("/rest", verifyRequest(app), bodyParser.json(), async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(req, res, true);
-
     try {
       const { data } = await axios.get(req.body.url, {
         headers: {
@@ -88,6 +87,7 @@ export async function createServer(
       res.status(500).send(error);
     }
   });
+  
   app.post("/graphql", verifyRequest(app), async (req, res) => {
     try {
       const response = await Shopify.Utils.graphqlProxy(req, res);

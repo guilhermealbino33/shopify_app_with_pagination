@@ -46,8 +46,7 @@ export function ProductsList() {
   const [queryValue, setQueryValue] = useState(null);
 
   useEffect(() => {
-    console.log(currentParams);
-    queryRequest(5, getParam("last"), getParam("after"), getParam("before"), getParam("reverse") === "true", getParam("sortKey"), getParam("title"), getParam("tag"));
+      queryRequest(getParam("first"), getParam("last"), getParam("after"), getParam("before"), getParam("reverse") === "true", getParam("sortKey"), getParam("title"), getParam("tag"));
   }, [searchParams]);
 
   // Handle for products PAGINATION
@@ -57,9 +56,10 @@ export function ProductsList() {
     currentParams.last = 5;
     currentParams.after = '';
     currentParams.before = cursor;
-    setSearchParams({ ...currentParams, last: 5, before: cursor, after: '', first: '' })
-    getSomeData({ variables: { last: 5, before: cursor, reverse: getParam("reverse") === "true", sortKey: getParam("sortKey") } });
-  }, [data, currentParams]);
+    setSearchParams({ ...currentParams, first: '', last: 5, after: '', before: cursor });
+    console.log(`Last: ${getParam('last')}`);
+    console.log(`Before: ${getParam('before')}`);
+  }, [data, currentParams, searchParams]);
 
   const getNextPageProducts = useCallback((data) => {
     const cursor = data.products.edges[data.products.edges.length - 1].cursor;
@@ -67,9 +67,10 @@ export function ProductsList() {
     currentParams.last = '';
     currentParams.after = cursor;
     currentParams.before = '';
-    setSearchParams({ ...currentParams, first: 5, after: cursor, before: '', last: '' })
-    getSomeData({ variables: { first: 5, after: cursor, reverse: getParam("reverse") === "true", sortKey: getParam("sortKey") } });
-  }, [data, currentParams]);
+    setSearchParams({ ...currentParams, first: 5, last: '', after: cursor, before: '' });
+    console.log(`First: ${getParam('first')}`);
+    console.log(`After: ${getParam('after')}`);
+  }, [data, currentParams, searchParams]);
 
   // Sort by Newest OR Oldest
   const handleSortValueChange = useCallback((value) => {
@@ -130,10 +131,6 @@ export function ProductsList() {
     handleTaggedWithRemove,
   ]);
 
-  // Clear url
-  const clearUrl = useCallback(() => {
-    // setSearchParams('');
-  }, [])
   // FILTER part START---------------------------------------------------------------------------------------------------------
   const filters = [
     {
@@ -248,7 +245,7 @@ export function ProductsList() {
           />
         </Card>
         <Card sectioned>
-          <Button fullWidth primary onClick={()=>{navigate('/create')}}>Add new product</Button>
+          <Button fullWidth primary onClick={() => { navigate('/create') }}>Add new product</Button>
         </Card>
       </Card>
     </Page>
@@ -274,7 +271,7 @@ export function ProductsList() {
   }
 
   // Handle for change filters value
-  function queryRequest(first = 5, last, after, before, reverse, sortKey, title, tag) {
+  function queryRequest(first, last, after, before, reverse, sortKey, title, tag) {
     if (!first && !last) {
       console.log('Fetched');
       getSomeData({ variables: { first: 5, last: null, after: null, reverse: reverse, sortKey: sortKey, query: null } })
@@ -288,17 +285,17 @@ export function ProductsList() {
 
       case (title && !tag):
         console.log("Title only");
-        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: `title:${title}*` } })
+        getSomeData({ variables: { first: first, last: last, after: after, before: before, reverse: reverse, sortKey: sortKey, query: `title:${title}*` } })
         break;
 
       case (tag && !title):
         console.log("Tag only");
-        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: `tag:${tag}*` } })
+        getSomeData({ variables: { first: first, last: last, after: after, before: before, reverse: reverse, sortKey: sortKey, query: `tag:${tag}*` } })
         break;
 
       default:
         console.log("Title and tag are empty");
-        getSomeData({ variables: { first: first, last: last, after: after, reverse: reverse, sortKey: sortKey, query: null } })
+        getSomeData({ variables: { first: first, last: last, after: after, before: before, reverse: reverse, sortKey: sortKey, query: null } })
         break;
     }
   }
@@ -313,8 +310,8 @@ export function ProductsList() {
     const urlQueryObject = Object.fromEntries([...searchParams]);
     if (urlQueryObject.hasOwnProperty(param)) {
       if (param === "first" || param === "last") {
-        if (param) {
-          return parseInt(param);
+        if (urlQueryObject[param]) {
+          return parseInt(urlQueryObject[param]);
         } else {
           return null;
         }
