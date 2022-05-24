@@ -1,72 +1,73 @@
-import React from 'react';
-import { useEffect } from 'react';
+import React from "react";
+import { useEffect } from "react";
 import {
-    Page,
-    Card,
-    Heading,
-    TextContainer,
-    DisplayText,
-    TextStyle
-} from '@shopify/polaris';
-import { useClientRouting, useRoutePropagation } from "@shopify/app-bridge-react";
+  Page,
+  Card,
+  Heading,
+  TextContainer,
+  DisplayText,
+  TextStyle,
+  EmptyState,
+} from "@shopify/polaris";
+import {
+  useClientRouting,
+  useRoutePropagation,
+} from "@shopify/app-bridge-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const Dashboard = ({
-    totalProductCount,
-    publishedProductCount,
-    createdAfter16MayProductCount,
-    getAllCountProduct,
-    getPublishedCountProduct,
-    getCreadtedAfter16MayCountProduct
+  totalProductCount,
+  getAllCountProduct,
+  getPublishedCountProduct,
 }) => {
-    // Use location
-    const location = useLocation();
-    const navigate = useNavigate();
-    useRoutePropagation(location);
-    useClientRouting({
-        replace(path) {
-            navigate(path);
-        }
-    });
+  // Use location
+  const location = useLocation();
+  const navigate = useNavigate();
+  useRoutePropagation(location);
+  useClientRouting({
+    replace(path) {
+      navigate(path);
+    },
+  });
 
-    useEffect(() => {
-        getAllCountProduct(),
-        getPublishedCountProduct(),
-        getCreadtedAfter16MayCountProduct()
-    }, []);
+  useEffect(() => {
+    getAllCountProduct(), getPublishedCountProduct();
+  }, []);
 
-    return (
-        <Page>
-            <Card title='All count products' sectioned>
-                <TextContainer spacing='loose'>
-                    <Heading element="h4">
-                        NUMBER OF EXISTING PRODUCTS
-                        <DisplayText size="medium">
-                            <TextStyle variation="strong">{totalProductCount}</TextStyle>
-                        </DisplayText>
-                    </Heading>
-                </TextContainer>
-            </Card>
-            <Card title='Published products' sectioned>
-                <TextContainer spacing='loose'>
-                    <Heading element="h4">
-                        NUMBER OF PUBLISHED PRODUCTS
-                        <DisplayText size="medium">
-                            <TextStyle variation="strong">{publishedProductCount}</TextStyle>
-                        </DisplayText>
-                    </Heading>
-                </TextContainer>
-            </Card>
-            <Card title='Product created after 16 may' sectioned>
-                <TextContainer spacing='loose'>
-                    <Heading element="h4">
-                        NUMBER OF PRODUCTS WHICH CREATED AFTER 16 MAY
-                        <DisplayText size="medium">
-                            <TextStyle variation="strong">{createdAfter16MayProductCount}</TextStyle>
-                        </DisplayText>
-                    </Heading>
-                </TextContainer>
-            </Card>
-        </Page>
-    )
-}
+  return (
+    <Page>
+      <Card sectioned>
+        <EmptyState
+          heading="Manage your inventory transfers"
+          action={{ content: "Add transfer" }}
+          secondaryAction={{
+            content: "Learn more",
+            url: "https://help.shopify.com",
+          }}
+          image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+        >
+          <p>Track and receive your incoming inventory from suppliers.</p>
+        </EmptyState>
+      </Card>
+      <Card title="All count products" sectioned>
+        <TextContainer spacing="loose">
+          <p> Number of Existing Products </p>
+          <DisplayText>
+            <TextStyle variation="strong">{totalProductCount}</TextStyle>
+          </DisplayText>
+        </TextContainer>
+      </Card>
+      <Card title="Locations" sectioned>
+        <TextContainer spacing="loose">
+          <p> List of current shop's locations </p>
+          <DisplayText>
+            <TextStyle variation="strong">
+              {" "}
+              <p>Create a path to show the locations</p>{" "}
+            </TextStyle>
+          </DisplayText>
+        </TextContainer>
+      </Card>
+    </Page>
+  );
+};
