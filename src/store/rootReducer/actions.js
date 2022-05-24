@@ -28,3 +28,10 @@ export const getPublishedCountProduct = createRequestAction(
     },
   })
 );
+export const getAllLocations = createRequestAction("ALL_LOCATIONS", () => ({
+  method: "post",
+  url: "/rest",
+  data: {
+    url: "https://example-bike-store.myshopify.com/admin/api/2022-04/locations.json",
+  },
+}));
